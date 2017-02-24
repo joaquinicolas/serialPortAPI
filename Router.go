@@ -5,18 +5,20 @@ import ("net/http"
 	"fmt"
 	"github.com/joaquinicolas/Elca/Ports"
 	"encoding/json"
-	"log"
+
+	"io/ioutil"
 )
 
 type RequestError struct {
 	ErrorString string
 	HttpStatusCode int
+	Excepton error
 }
 
 // Error writes the error to http.ResponseWritter
 func (re *RequestError) Error(w http.ResponseWriter)  {
 	w.WriteHeader(re.HttpStatusCode)
-	fmt.Fprintf(w,"{error: %q}",re.ErrorString)
+	fmt.Fprintf(w,"{error: %q, StackTrace: %q}",re.ErrorString, re.Excepton)
 }
 type Route struct {
 	Name string
@@ -58,11 +60,16 @@ func ListPorts(w http.ResponseWriter,r *http.Request)  {
 
 
 func OpenandRead(w http.ResponseWriter, r *http.Request)  {
-	var port *Ports.Port
+	w.Header().Set("Content-Type","application/json")
+
+	var port Ports.Port
 	var requestError *RequestError
-	err := json.NewDecoder(r.Body).Decode(port)
-	log.Println(port)
-	log.Println(err)
+	b, err := ioutil.ReadAll(r.Body)
+	json.Unmarshal(b,&port)
+
+	fmt.Println(string(b))
+	fmt.Println(port.Description)
+
 	if err != nil {
 		requestError = &RequestError{
 			ErrorString:err.Error(),
@@ -74,34 +81,22 @@ func OpenandRead(w http.ResponseWriter, r *http.Request)  {
 
 	defer r.Body.Close()
 
-	dataChannel := make(chan string,1)
-	errorChannel := make(chan error,1)
-	go func() {
-		for {
-			d,e := port.Read()
-			if e != nil {
-				errorChannel <- e
-			}else{
-				dataChannel <- d
-			}
 
-		}
-	}()
-
-
-	select {
-	case err := <- errorChannel:
+	serialPort, err := port.Open()
+	if err != nil {
 		requestError = &RequestError{
 			ErrorString: err.Error(),
 			HttpStatusCode:http.StatusInternalServerError,
+			Excepton:err,
 		}
 		requestError.Error(w)
 		return
-
-	case data := <- dataChannel:
-		fmt.Fprintf(w,"{data: %c}",data)
-		return
 	}
+
+	defer r.Body.Close()
+	fmt.Println(serialPort)
+	fmt.Fprintf(w,"{data: %c change status to open}",port.Name)
+	return
 }
 
 func CreateRouter() *mux.Router {

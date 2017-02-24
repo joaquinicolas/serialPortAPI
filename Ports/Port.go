@@ -20,13 +20,11 @@ type Port struct {
 	Opened      bool `json:"opened"`
 }
 
-//Read reads the incoming buffer in a specific port
-// and configuration. If config options is nill
-// read with serial.RawOptions.
-func (p *Port) Read() (string, error) {
+//Open open a port and return and instance of serial.Port
+func (p *Port) Open()(*serial.Port,error) {
 
 	if p == nil {
-		return "", errors.New("configs cannot be nill")
+		return nil, errors.New("configs cannot be nill")
 	}
 
 	if p.Options == (serial.Options{}) {
@@ -37,13 +35,26 @@ func (p *Port) Read() (string, error) {
 	port, err := p.Options.Open(p.Name)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	defer port.Close()
+	defer p.Close(port)
+	p.Opened = true
+	return p.Options.Open(p.Name)
+}
+
+func (p *Port) Close(port *serial.Port)  {
+	p.Opened = false
+	port.Close()
+}
+
+//Read reads the incoming buffer in a specific port
+func Read(port *serial.Port) (string, error) {
 
 	buf := make([]byte, 1)
 	if _, err := port.Read(buf); err != nil {
+
+
 		return "", err
 	}
 	return string(buf), nil
