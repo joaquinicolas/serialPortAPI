@@ -1,0 +1,19 @@
+{
+	"ImportPath": "github.com/joaquinicolas/Elca",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v79",
+	"Packages": [
+		"./"
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.3.0",
+			"Rev": "392c28fe23e1c45ddba891b0320b3b5df220beea"
+		},
+		{
+			"ImportPath": "github.com/mikepb/go-serial",
+			"Rev": "3db078dbcc1c04e919dfb1d9c39ae42d15b6129d"
+		}
+	]
+}
