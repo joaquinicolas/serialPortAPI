@@ -1,22 +1,38 @@
 package Store
 
 import (
-	"github.com/mattn/go-sqlite3"
-	"database/sql"
+	_"github.com/mattn/go-sqlite3"
 	"github.com/joaquinicolas/Elca/libs"
+	"golang.org/x/net/websocket"
 )
 
-var stores map[string] *Store
+var stores map[string] *Storer
 
-type Store struct {
+type Storer interface {
+	Name() string
+
+}
+
+type NewStore func(dsn string)(Storer)
+
+type SQLiteStore struct {
 	DriverName string
 	DataSource string
 }
 
-type NewStore func(dsn string)(*Store)
+func (s *SQLiteStore) Name() string{
+	return s.DriverName
+}
+
+func NewSQLiteStore(dsn string) (Storer){
+	return &SQLiteStore{
+		DriverName:"sqlite3",
+		DataSource:dsn,
+	}
+}
 
 
-func Register(name string, store Store)  {
+func Register(name string, store Storer)  {
 	_, ok := stores[name]
 	if ok {
 		libs.Warning.Println("The dsn alredy exists")
@@ -26,7 +42,6 @@ func Register(name string, store Store)  {
 
 }
 func init()  {
-	
 }
 
 
