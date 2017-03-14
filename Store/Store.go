@@ -5,6 +5,7 @@ import (
 	"github.com/joaquinicolas/Elca/libs"
 	"golang.org/x/net/websocket"
 	"database/sql"
+	"reflect"
 )
 
 var stores map[string] *Storer
@@ -14,7 +15,7 @@ type Storer interface {
 
 }
 
-type NewStore func(dsn string)(Storer)
+type NewStore func(dsn string)(*Storer)
 
 type SQLiteStore struct {
 	DriverName string
@@ -44,8 +45,8 @@ func (s *SQLiteStore)  CreateDB() *sql.DB{
 	return db
 }
 
-
-func NewSQLiteStore(dsn string) (Storer){
+//NewSQLiteStore creates an instance of SQLiteStore
+func NewSQLiteStore(dsn string) (*SQLiteStore){
 	return &SQLiteStore{
 		DriverName:"sqlite3",
 		DataSource:dsn,
@@ -53,6 +54,7 @@ func NewSQLiteStore(dsn string) (Storer){
 }
 
 
+//Register register a storer
 func Register(name string, store Storer)  {
 	_, ok := stores[name]
 	if ok {
@@ -63,6 +65,17 @@ func Register(name string, store Storer)  {
 
 }
 func init()  {
+	store := NewSQLiteStore("./elca.db")
+	Register(store.Name(),store)
 }
 
+
+type Creator interface {
+	Store(db *sql.DB,data interface{})
+}
+
+type Reader interface {
+	Read(db *sql.DB) (interface{})
+	List(db *sql.DB) ([]interface{})
+}
 
