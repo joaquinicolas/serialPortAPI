@@ -1,8 +1,9 @@
 package models
 
+import "database/sql"
 
-
-type New struct {
-	Id int
-	Text string
+type News struct {
+	Id sql.NullInt64
+	Text sql.NullString
 }
+
