@@ -9,7 +9,7 @@ import (
 //PortReader is the interface that wraps the basic Port Read method.
 //It returns the data read as string and any error encountred.
 type PortReader interface {
-	Read() (n string, err error)
+	Read(port *serial.Port) (string, error)
 }
 
 //Port represents the serial port.

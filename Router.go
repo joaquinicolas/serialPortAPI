@@ -7,6 +7,7 @@ import ("net/http"
 	"encoding/json"
 
 	"io/ioutil"
+	"github.com/joaquinicolas/Elca/Store/models"
 )
 
 type RequestError struct {
@@ -93,6 +94,10 @@ func OpenandRead(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
+	go func() {
+
+	}()
+	go Ports.ReadAndStore()
 	defer r.Body.Close()
 	fmt.Println(serialPort)
 	fmt.Fprintf(w,"{data: %c change status to open}",port.Name)
