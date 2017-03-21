@@ -4,11 +4,13 @@ import (
 	_"github.com/mattn/go-sqlite3"
 	"github.com/joaquinicolas/Elca/libs"
 	"database/sql"
-	"github.com/joaquinicolas/Elca/Store/models"
 	"github.com/mattn/go-sqlite3"
 	"log"
+	"sync"
+	"github.com/joaquinicolas/Elca/Store/models"
 )
 
+var once sync.Once
 var stores map[string] *Storer
 
 type Storer interface {
@@ -21,51 +23,54 @@ type NewStore func(dsn string)(*Storer)
 type SQLiteStore struct {
 	DriverName string
 	DataSource string
+	db *sql.DB
 }
 
 func (s *SQLiteStore) Name() string{
 	return s.DriverName
 }
 
-//CreateDBCon creates database object
-func (s *SQLiteStore) CreateDBCon() *sql.DB{
+//getInstance creates database object
+func (s *SQLiteStore) getInstance() *sql.DB{
 
-	sql.Register(s.DriverName,&sqlite3.SQLiteDriver{})
-	db, err := sql.Open(s.DriverName,s.DataSource)
-	if err != nil {
-		libs.Error.Println(err)
-		return nil
+	createCon := func() {
+		sql.Register(s.DriverName,&sqlite3.SQLiteDriver{})
+		db, err := sql.Open(s.DriverName,s.DataSource)
+		if err != nil {
+			libs.Error.Println(err)
+			return
+		}
+		defer db.Close()
+		err = db.Ping()
+		if err != nil {
+			libs.Error.Println(err)
+			return
+		}
+
+
+		_, err = db.Exec(
+			"CREATE TABLE IF NOT EXISTS news (id INTEGER PRIMARY KEY," +
+				" text VARCHAR(250) NOT NULL )")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		s.db = db
 	}
-	defer db.Close()
-	err = db.Ping()
-	if err != nil {
-		libs.Error.Println(err)
-		return nil
-	}
 
+	once.Do(createCon)
+	return s.db
 
-	_, err = db.Exec(
-		"CREATE TABLE IF NOT EXISTS news (id INTEGER PRIMARY KEY," +
-			" text VARCHAR(250) NOT NULL )")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-
-
-	defer db.Close()
-	return db
 }
 
 func (s *SQLiteStore) ReadNews(id int) *models.News{
 
-	database := s.CreateDBCon()
+	database := s.getInstance()
 	stmt, err := database.Prepare("SELECT id,text FROM news WHERE id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer database.Close()
 	news := &models.News{}
 	err = stmt.QueryRow(id).Scan(&news.Id,&news.Text)
 	if err != nil {
@@ -76,8 +81,7 @@ func (s *SQLiteStore) ReadNews(id int) *models.News{
 }
 
 func (s *SQLiteStore) ListNews() ([]*models.News){
-	database := s.CreateDBCon()
-	defer database.Close()
+	database := s.getInstance()
 	rows, err := database.Query("SELECT * FROM news")
 	if err != nil {
 		log.Fatal(err)
@@ -104,8 +108,7 @@ func (s *SQLiteStore) ListNews() ([]*models.News){
 
 // StoreNews stores news and return lastId, rows affected or an error if exists.
 func (s *SQLiteStore) StoreNews(n *models.News) (int64,int64,error) {
-	database := s.CreateDBCon()
-	defer database.Close()
+	database := s.getInstance()
 	stmt, err := database.Prepare("INSERT INTO news(text) VALUES (?)")
 	if err != nil {
 		return 0,0, err
@@ -130,6 +133,8 @@ func (s *SQLiteStore) StoreNews(n *models.News) (int64,int64,error) {
 
 //NewSQLiteStore creates an instance of SQLiteStore
 func NewSQLiteStore(dsn string) (*SQLiteStore){
+
+
 	return &SQLiteStore{
 		DriverName:"sqlite3",
 		DataSource:dsn,
@@ -147,7 +152,9 @@ func Register(name string, store Storer)  {
 	stores[name] = &store
 
 }
+
 func init()  {
+	stores = make(map[string] *Storer)
 	store := NewSQLiteStore("./elca.db")
 	Register(store.Name(),store)
 }
