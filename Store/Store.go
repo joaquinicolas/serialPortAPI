@@ -2,12 +2,14 @@ package Store
 
 import (
 	_"github.com/mattn/go-sqlite3"
-	"github.com/joaquinicolas/Elca/libs"
+
 	"database/sql"
-	"github.com/mattn/go-sqlite3"
+	
 	"log"
 	"sync"
 	"github.com/joaquinicolas/Elca/Store/models"
+	"errors"
+	"fmt"
 )
 
 var once sync.Once
@@ -30,20 +32,21 @@ func (s *SQLiteStore) Name() string{
 	return s.DriverName
 }
 
-//getInstance creates database object
+//getInstance returns a instance of database object
 func (s *SQLiteStore) getInstance() *sql.DB{
 
 	createCon := func() {
-		sql.Register(s.DriverName,&sqlite3.SQLiteDriver{})
+
+		fmt.Println("Opening connection")
+		
 		db, err := sql.Open(s.DriverName,s.DataSource)
 		if err != nil {
-			libs.Error.Println(err)
+			fmt.Println(err)
 			return
 		}
-		defer db.Close()
 		err = db.Ping()
 		if err != nil {
-			libs.Error.Println(err)
+			fmt.Println(err)
 			return
 		}
 
@@ -58,6 +61,7 @@ func (s *SQLiteStore) getInstance() *sql.DB{
 		s.db = db
 	}
 
+	fmt.Println("Before open connection")
 	once.Do(createCon)
 	return s.db
 
@@ -80,11 +84,11 @@ func (s *SQLiteStore) ReadNews(id int) *models.News{
 	return news
 }
 
-func (s *SQLiteStore) ListNews() ([]*models.News){
+func (s *SQLiteStore) ListNews() ([]*models.News, error){
 	database := s.getInstance()
 	rows, err := database.Query("SELECT * FROM news")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	defer rows.Close()
@@ -94,16 +98,17 @@ func (s *SQLiteStore) ListNews() ([]*models.News){
 		var data models.News
 		err := rows.Scan(&data.Id,&data.Text)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
+		
 
 		result = append(result,&data)
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return result
+	return result, nil
 }
 
 // StoreNews stores news and return lastId, rows affected or an error if exists.
@@ -131,8 +136,8 @@ func (s *SQLiteStore) StoreNews(n *models.News) (int64,int64,error) {
 
 }
 
-//NewSQLiteStore creates an instance of SQLiteStore
-func NewSQLiteStore(dsn string) (*SQLiteStore){
+//newSQLiteStore creates an instance of SQLiteStore
+func newSQLiteStore(dsn string) (*SQLiteStore){
 
 
 	return &SQLiteStore{
@@ -141,12 +146,24 @@ func NewSQLiteStore(dsn string) (*SQLiteStore){
 	}
 }
 
+func GetStore(dsn string) (*Storer, error) {
+	if dsn == ""{
+		return nil, errors.New("dsn cannot be empty string")
+	}
+	store, ok := stores[dsn]
+	if ok {
+		return store, nil
+	}
 
-//Register register a storer
-func Register(name string, store Storer)  {
+	return nil, errors.New("Store not exists")
+
+}
+
+//register register a storer
+func register(name string, store Storer)  {
 	_, ok := stores[name]
 	if ok {
-		libs.Warning.Println("The dsn alredy exists")
+		fmt.Println("The dsn alredy exists")
 		return
 	}
 	stores[name] = &store
@@ -155,8 +172,8 @@ func Register(name string, store Storer)  {
 
 func init()  {
 	stores = make(map[string] *Storer)
-	store := NewSQLiteStore("./elca.db")
-	Register(store.Name(),store)
+	store := newSQLiteStore("./elca.db")
+	register(store.Name(),store)
 }
 
 

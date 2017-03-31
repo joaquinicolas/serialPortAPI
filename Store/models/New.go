@@ -5,7 +5,6 @@ import (
 )
 
 type News struct {
-	Id sql.NullInt64
-	Text sql.NullString
+	Id   sql.NullInt64
+	Text string
 }
-
