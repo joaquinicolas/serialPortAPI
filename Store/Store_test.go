@@ -1,8 +1,13 @@
 package Store
 
 import (
-	"fmt"
+
+
+
+
+
 	"testing"
+	"fmt"
 
 	"github.com/joaquinicolas/Elca/Store/models"
 )
@@ -20,11 +25,22 @@ func TestNewSQLiteStore(t *testing.T) {
 
 func TestSQLiteStore_StoreNews(t *testing.T) {
 	n := &models.News{
-		Text: "Testing",
+
+
+
+
+
+
+
+
+		Text:"Testing",
+			
+
 	}
 	lastId, affectedRows, err := store.StoreNews(n)
-	if err != nil {
+	if err := nil {
 		t.Error(err)
+		
 
 	}
 
@@ -39,3 +55,7 @@ func TestSQLiteStore_ListNews(t *testing.T) {
 	}
 	fmt.Println(news)
 }
+
+
+
+

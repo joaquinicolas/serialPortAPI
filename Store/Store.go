@@ -38,7 +38,11 @@ func (s *SQLiteStore) getInstance() *sql.DB{
 	createCon := func() {
 
 		fmt.Println("Opening connection")
+<<<<<<< HEAD
 		
+=======
+		sql.Register(s.DriverName,&sqlite3.SQLiteDriver{})
+>>>>>>> 56b13b4fc25897956f909ea5943ab274f7903432
 		db, err := sql.Open(s.DriverName,s.DataSource)
 		if err != nil {
 			fmt.Println(err)
