@@ -14,7 +14,7 @@ import (
 )
 
 var once sync.Once
-var stores map[string]*Storer
+var stores map[string]*SQLiteStore
 
 //Storer is the interface that wraps the Name method
 type Storer interface {
@@ -145,21 +145,21 @@ func newSQLiteStore(dsn string) *SQLiteStore {
 	}
 }
 
-func GetStore(dsn string) (*Storer, error) {
+func GetStore(dsn string) (SQLiteStore, error) {
 	if dsn == "" {
-		return nil, errors.New("dsn cannot be empty string")
+		return SQLiteStore{}, errors.New("dsn cannot be empty string")
 	}
 	store, ok := stores[dsn]
 	if ok {
-		return store, nil
+		return *store, nil
 	}
 
-	return nil, errors.New("Store not exists")
+	return SQLiteStore{}, errors.New("Store not exists")
 
 }
 
 //register register a storer
-func register(name string, store Storer) {
+func register(name string, store SQLiteStore) {
 	_, ok := stores[name]
 	if ok {
 		fmt.Println("The dsn alredy exists")
@@ -170,7 +170,7 @@ func register(name string, store Storer) {
 }
 
 func init() {
-	stores = make(map[string]*Storer)
+	stores = make(map[string]*SQLiteStore)
 	store := newSQLiteStore("./elca.db")
-	register(store.Name(), store)
+	register(store.Name(), *store)
 }
