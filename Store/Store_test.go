@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/joaquinicolas/Elca/Store/models"
+	"github.com/joaquinicolas/Elca/Novelty"
 )
 
 var store SQLiteStore
@@ -19,11 +19,11 @@ func TestNewSQLiteStore(t *testing.T) {
 }
 
 func TestSQLiteStore_StoreNews(t *testing.T) {
-	n := &models.News{
+	n := &Novelty.Novelty{
 		Text: "Testing",
 	}
 	fmt.Printf("Store_test.go driver name: %s", store.DriverName)
-	lastID, affectedRows, err := store.StoreNews(n)
+	lastID, affectedRows, err := store.StoreNovelty(n)
 	if err != nil {
 		t.Error(err)
 	}
@@ -33,7 +33,7 @@ func TestSQLiteStore_StoreNews(t *testing.T) {
 
 }
 func TestSQLiteStore_ListNews(t *testing.T) {
-	news, err := store.ListNews()
+	news, err := store.ListNovelty()
 	if err != nil {
 		t.Error(err)
 	}
@@ -45,7 +45,7 @@ func TestSQLiteStore_ListNews(t *testing.T) {
 	fmt.Printf("News count: %d", len(news))
 }
 func TestSQLiteStore_ReadNews(t *testing.T) {
-	news := store.ReadNews(1)
+	news := store.ReadNovelty(1)
 	if news == nil {
 		fmt.Println("news cannot be nil")
 		t.Fail()

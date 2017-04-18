@@ -1,6 +1,7 @@
 package Store
 
 import (
+	"github.com/joaquinicolas/Elca/Novelty"
 	_ "github.com/mattn/go-sqlite3"
 
 	"database/sql"
@@ -66,7 +67,7 @@ func (s *SQLiteStore) getInstance() *sql.DB {
 
 }
 
-func (s *SQLiteStore) ReadNews(id int) *models.News {
+func (s *SQLiteStore) ReadNovelty(id int) *models.News {
 
 	database := s.getInstance()
 	stmt, err := database.Prepare("SELECT id,text FROM news WHERE id = ?")
@@ -83,7 +84,7 @@ func (s *SQLiteStore) ReadNews(id int) *models.News {
 	return news
 }
 
-func (s *SQLiteStore) ListNews() ([]*models.News, error) {
+func (s *SQLiteStore) ListNovelty() ([]*models.News, error) {
 	database := s.getInstance()
 	rows, err := database.Query("SELECT * FROM news")
 	if err != nil {
@@ -110,7 +111,7 @@ func (s *SQLiteStore) ListNews() ([]*models.News, error) {
 }
 
 // StoreNews stores news and return lastId, rows affected or an error if exists.
-func (s *SQLiteStore) StoreNews(n *models.News) (int64, int64, error) {
+func (s *SQLiteStore) StoreNovelty(n *Novelty.Novelty) (int64, int64, error) {
 	database := s.getInstance()
 	stmt, err := database.Prepare("INSERT INTO news(text) VALUES (?)")
 	if err != nil {

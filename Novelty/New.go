@@ -1,10 +1,10 @@
-package models
+package Novelty
 
 import (
 	"database/sql"
 )
 
-type News struct {
+type Novelty struct {
 	Id   sql.NullInt64
 	Text string
 }

@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	logger "github.com/joaquinicolas/Elca/Logger"
+	"github.com/joaquinicolas/Elca/Novelty"
 	"github.com/joaquinicolas/Elca/Ports"
 	"github.com/joaquinicolas/Elca/Store"
-	"github.com/joaquinicolas/Elca/Store/models"
 
 	"io/ioutil"
 )
@@ -75,6 +76,7 @@ func OpenandRead(w http.ResponseWriter, r *http.Request) {
 			HttpStatusCode: http.StatusInternalServerError,
 		}
 		requestError.Error(w)
+		logger.Error.Println(err)
 		return
 	}
 
@@ -88,6 +90,7 @@ func OpenandRead(w http.ResponseWriter, r *http.Request) {
 			Excepton:       err,
 		}
 		requestError.Error(w)
+		logger.Error.Println(err)
 		return
 	}
 
@@ -96,19 +99,21 @@ func OpenandRead(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		for {
 			Ports.Read(serialPort, msgCh, errCh)
-		}
-	}()
-
-	go func() {
-		for {
 			select {
 			case msg := <-msgCh:
-				n := &models.News{
+				n := &Novelty.Novelty{
 					Text: msg,
 				}
-				store, _ := Store.GetStore("sqlite3")
-				store.StoreNews(n)
+				db, err := Store.GetStore("sqlite3")
+				if err != nil {
+					logger.Error.Println(err)
+				}
+
+				db.StoreNovelty(n)
+
 			case err := <-errCh:
+				logger.Error.Println(err)
+
 			}
 		}
 	}()
