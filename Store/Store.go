@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+
 )
 
 var once sync.Once
@@ -36,6 +37,7 @@ func (s *SQLiteStore) Name() string {
 func (s *SQLiteStore) getInstance() *sql.DB {
 
 	createCon := func() {
+
 
 		fmt.Println("Opening connection")
 		fmt.Println(s.DataSource)
@@ -67,7 +69,7 @@ func (s *SQLiteStore) getInstance() *sql.DB {
 
 }
 
-func (s *SQLiteStore) ReadNovelty(id int) *models.News {
+func (s *SQLiteStore) ReadNovelty(id int) *Novelty.Novelty {
 
 	database := s.getInstance()
 	stmt, err := database.Prepare("SELECT id,text FROM news WHERE id = ?")
@@ -75,7 +77,7 @@ func (s *SQLiteStore) ReadNovelty(id int) *models.News {
 		log.Fatal(err)
 	}
 
-	news := &models.News{}
+	news := &Novelty.Novelty{}
 	err = stmt.QueryRow(id).Scan(&news.Id, &news.Text)
 	if err != nil {
 		log.Fatal(err)
@@ -84,7 +86,7 @@ func (s *SQLiteStore) ReadNovelty(id int) *models.News {
 	return news
 }
 
-func (s *SQLiteStore) ListNovelty() ([]*models.News, error) {
+func (s *SQLiteStore) ListNovelty() ([]*Novelty.Novelty, error) {
 	database := s.getInstance()
 	rows, err := database.Query("SELECT * FROM news")
 	if err != nil {
@@ -93,9 +95,9 @@ func (s *SQLiteStore) ListNovelty() ([]*models.News, error) {
 
 	defer rows.Close()
 
-	var result []*models.News
+	var result []*Novelty.Novelty
 	for rows.Next() {
-		var data models.News
+		var data Novelty.Novelty
 		err := rows.Scan(&data.Id, &data.Text)
 		if err != nil {
 			return nil, err

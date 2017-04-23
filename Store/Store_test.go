@@ -3,7 +3,6 @@ package Store
 import (
 	"fmt"
 	"testing"
-
 	"github.com/joaquinicolas/Elca/Novelty"
 )
 

@@ -11,7 +11,6 @@ import (
 	"github.com/joaquinicolas/Elca/Ports"
 	"github.com/joaquinicolas/Elca/Store"
 
-	"io/ioutil"
 )
 
 type RequestError struct {
@@ -66,9 +65,7 @@ func OpenandRead(w http.ResponseWriter, r *http.Request) {
 
 	var port Ports.Port
 	var requestError *RequestError
-	b, err := ioutil.ReadAll(r.Body)
-
-	json.Unmarshal(b, &port)
+	err := json.NewDecoder(r.Body).Decode(&port)
 
 	if err != nil {
 		requestError = &RequestError{
