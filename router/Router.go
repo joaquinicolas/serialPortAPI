@@ -103,13 +103,27 @@ func OpenandRead(w http.ResponseWriter, r *http.Request) {
 				}
 				db, err := Store.GetStore("sqlite3")
 				if err != nil {
+					requestError = &RequestError{
+						ErrorString:    err.Error(),
+						HttpStatusCode: http.StatusInternalServerError,
+						Excepton:       err,
+					}
+					requestError.Error(w)
 					logger.Error.Println(err)
+					return
 				}
 
 				db.StoreNovelty(n)
 
 			case err := <-errCh:
+				requestError = &RequestError{
+					ErrorString:    err.Error(),
+					HttpStatusCode: http.StatusInternalServerError,
+					Excepton:       err,
+				}
+				requestError.Error(w)
 				logger.Error.Println(err)
+				return
 
 			}
 		}
