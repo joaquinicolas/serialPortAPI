@@ -3,7 +3,7 @@
 	"GoVersion": "go1.7",
 	"GodepVersion": "v79",
 	"Packages": [
-		"./"
+		"."
 	],
 	"Deps": [
 		{
@@ -12,8 +12,17 @@
 			"Rev": "392c28fe23e1c45ddba891b0320b3b5df220beea"
 		},
 		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Comment": "v1.2.0-27-g2acfafa",
+			"Rev": "2acfafad5870400156f6fceb12852c281cbba4d5"
+		},
+		{
 			"ImportPath": "github.com/mikepb/go-serial",
 			"Rev": "3db078dbcc1c04e919dfb1d9c39ae42d15b6129d"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "906cda9512f77671ab44f8c8563b13a8e707b230"
 		}
 	]
 }
