@@ -11,6 +11,7 @@ import (
 	"github.com/joaquinicolas/Elca/Ports"
 	"github.com/joaquinicolas/Elca/Store"
 
+	"github.com/joaquinicolas/Elca/notifier"
 )
 
 type RequestError struct {
@@ -56,7 +57,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 func ListPorts(w http.ResponseWriter, r *http.Request) {
 	ports, _ := Ports.List()
-
 	json.NewEncoder(w).Encode(ports)
 }
 
@@ -102,6 +102,7 @@ func OpenandRead(w http.ResponseWriter, r *http.Request) {
 					Text: msg,
 				}
 				db, err := Store.GetStore("sqlite3")
+				notifier.NotifyNovelty(n)
 				if err != nil {
 					requestError = &RequestError{
 						ErrorString:    err.Error(),
